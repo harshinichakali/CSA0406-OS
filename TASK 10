@@ -1,0 +1,79 @@
+#define _POSIX_C_SOURCE 200809L
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <time.h>
+ 
+#define COUNT 1000
+ 
+static double seconds(struct timespec a, struct timespec b)
+{
+    return (b.tv_sec - a.tv_sec) +
+           (b.tv_nsec - a.tv_nsec) / 1000000000.0;
+}
+ 
+int main(void)
+{
+    struct timespec start, end;
+    int created = 0;
+ 
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    for (int i = 0; i < COUNT; i++) {
+        pid_t p = fork();
+        if (p < 0) { perror("fork"); break; }
+        if (p == 0) _exit(0);
+        created++;
+    }
+    for (int i = 0; i < created; i++)
+        wait(NULL);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    printf("Processes created: %d\n", created);
+    printf("Process benchmark seconds: %.6f\n", seconds(start, end));
+    return 0;
+}
+
+Thread Benchmark Program
+
+#define _POSIX_C_SOURCE 200809L
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <time.h>
+ 
+#define COUNT 1000
+ 
+static void *worker(void *arg)
+{
+    (void)arg;
+    return NULL;
+}
+ 
+static double seconds(struct timespec a, struct timespec b)
+{
+    return (b.tv_sec - a.tv_sec) +
+           (b.tv_nsec - a.tv_nsec) / 1000000000.0;
+}
+ 
+int main(void)
+{
+    pthread_t threads[COUNT];
+    struct timespec start, end;
+    int created = 0;
+ 
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    for (int i = 0; i < COUNT; i++) {
+        int rc = pthread_create(&threads[i], NULL, worker, NULL);
+        if (rc != 0) {
+            fprintf(stderr, "pthread_create failed at %d (code %d)\n", i, rc);
+            break;
+        }
+        created++;
+    }
+    for (int i = 0; i < created; i++)
+        pthread_join(threads[i], NULL);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    printf("Threads created: %d\n", created);
+    printf("Thread benchmark seconds: %.6f\n", seconds(start, end));
+    return 0;
+}
