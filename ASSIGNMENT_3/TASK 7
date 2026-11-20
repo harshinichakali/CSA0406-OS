@@ -1,0 +1,155 @@
+#define _POSIX_C_SOURCE 200809L
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/mman.h>
+#include <time.h>
+
+#define PAGE_SIZE 4096
+#define FRAMES 3
+#define REFERENCES 12
+
+// Calculate execution time
+double get_time()
+{
+    struct timespec t;
+    clock_gettime(CLOCK_MONOTONIC, &t);
+
+    return t.tv_sec * 1000000000.0 + t.tv_nsec;
+}
+
+// FIFO page replacement
+int fifo(int ref[], int n, int frames)
+{
+    int f[FRAMES];
+    int used = 0, next = 0, faults = 0;
+
+    for (int i = 0; i < n; i++)
+    {
+        int found = 0;
+
+        for (int j = 0; j < used; j++)
+        {
+            if (f[j] == ref[i])
+            {
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            faults++;
+
+            if (used < frames)
+                f[used++] = ref[i];
+            else
+            {
+                f[next] = ref[i];
+                next = (next + 1) % frames;
+            }
+        }
+    }
+
+    return faults;
+}
+
+int main()
+{
+    char *memory;
+    double start, end;
+    double max_delay = 0;
+
+    memory = (char *)malloc(PAGE_SIZE);
+
+    if (memory == NULL)
+    {
+        printf("Memory allocation failed\n");
+        return 1;
+    }
+
+    // Touch memory before measurement
+    for (int i = 0; i < PAGE_SIZE; i++)
+        memory[i] = 0;
+
+    printf("MEMORY MANAGEMENT PLAN\n");
+    printf("----------------------\n");
+
+    printf("\nMemory Allocation:\n");
+    printf("Total RAM: 2048 MB\n");
+    printf("Real-time task: 256 MB\n");
+    printf("Machine learning task: 1536 MB\n");
+    printf("Logging task: 128 MB\n");
+    printf("Total used memory: 1920 MB\n");
+    printf("Free memory: 128 MB\n");
+
+    // Without memory locking
+    max_delay = 0;
+
+    for (int i = 0; i < 10000; i++)
+    {
+        start = get_time();
+
+        memory[i % PAGE_SIZE]++;
+
+        end = get_time();
+
+        if (end - start > max_delay)
+            max_delay = end - start;
+    }
+
+    printf("\nWithout Memory Locking:\n");
+    printf("Maximum loop delay: %.0f ns\n", max_delay);
+
+    // With memory locking
+    if (mlock(memory, PAGE_SIZE) == 0)
+    {
+        printf("\nMemory locking successful.\n");
+
+        max_delay = 0;
+
+        for (int i = 0; i < 10000; i++)
+        {
+            start = get_time();
+
+            memory[i % PAGE_SIZE]++;
+
+            end = get_time();
+
+            if (end - start > max_delay)
+                max_delay = end - start;
+        }
+
+        printf("With Memory Locking:\n");
+        printf("Maximum loop delay: %.0f ns\n", max_delay);
+
+        munlock(memory, PAGE_SIZE);
+    }
+    else
+    {
+        printf("\nMemory locking not permitted by compiler.\n");
+        printf("Run on Linux with sufficient memory-lock limit.\n");
+    }
+
+    // FIFO page replacement simulation
+    int ref[REFERENCES] =
+    {
+        1, 2, 3, 1, 4, 2,
+        5, 1, 2, 3, 4, 5
+    };
+
+    printf("\nFIFO PAGE REPLACEMENT SIMULATION\n");
+    printf("Number of frames: %d\n", FRAMES);
+    printf("Number of page faults: %d\n",
+           fifo(ref, REFERENCES, FRAMES));
+
+    printf("\nFourth Task Analysis:\n");
+    printf("Additional task memory: 500 MB\n");
+    printf("Total memory required: 2420 MB\n");
+    printf("Available RAM: 2048 MB\n");
+    printf("Additional memory required: 372 MB\n");
+
+    free(memory);
+
+    return 0;
+}
