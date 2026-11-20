@@ -1,0 +1,61 @@
+#include <stdio.h>
+#include <math.h>
+
+int main()
+{
+    int disks = 6;
+    double disk_size = 4.0;
+    double p = 0.02;
+
+    double total_capacity;
+    double raid0, raid1, raid5, raid10, raid6;
+
+    double raid1_loss, raid5_loss;
+
+    total_capacity = disks * disk_size;
+
+    // RAID capacity calculations
+    raid0 = disks * disk_size;
+    raid1 = (disks / 2) * disk_size;
+    raid5 = (disks - 1) * disk_size;
+    raid10 = (disks / 2) * disk_size;
+    raid6 = (disks - 2) * disk_size;
+
+    // RAID 1 probability of data loss
+    raid1_loss = 1 - pow(1 - p * p, 3);
+
+    // RAID 5 probability of data loss
+    raid5_loss = 1 - pow(1 - p, 6)
+                   - 6 * p * pow(1 - p, 5);
+
+    printf("DISK MANAGEMENT - RAID ANALYSIS\n");
+    printf("--------------------------------\n");
+
+    printf("Number of disks: %d\n", disks);
+    printf("Capacity per disk: %.0f TB\n", disk_size);
+    printf("Total capacity: %.0f TB\n\n", total_capacity);
+
+    printf("RAID USABLE CAPACITY\n");
+    printf("--------------------\n");
+
+    printf("RAID 0  : %.0f TB\n", raid0);
+    printf("RAID 1  : %.0f TB\n", raid1);
+    printf("RAID 5  : %.0f TB\n", raid5);
+    printf("RAID 10 : %.0f TB\n", raid10);
+    printf("RAID 6  : %.0f TB\n\n", raid6);
+
+    printf("DATA LOSS PROBABILITY\n");
+    printf("---------------------\n");
+
+    printf("Disk failure probability: %.0f%%\n", p * 100);
+
+    printf("RAID 1 data loss: %.4f%%\n",
+           raid1_loss * 100);
+
+    printf("RAID 5 data loss: %.4f%%\n",
+           raid5_loss * 100);
+
+    printf("\nRAID 6 can tolerate any 2 disk failures.\n");
+
+    return 0;
+}
