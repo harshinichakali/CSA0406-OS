@@ -1,0 +1,55 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define MEMORY_MB 16
+#define PAGE_SIZE 4096
+
+int main()
+{
+    size_t total_bytes = MEMORY_MB * 1024 * 1024;
+    size_t total_pages = total_bytes / PAGE_SIZE;
+
+    char *memory = (char *)malloc(total_bytes);
+
+    if (memory == NULL)
+    {
+        printf("Memory allocation failed!\n");
+        return 1;
+    }
+
+    printf("VIRTUAL MEMORY DEMONSTRATION\n");
+    printf("---------------------------\n");
+    printf("Allocated memory: %d MB\n", MEMORY_MB);
+    printf("Page size: %d bytes\n", PAGE_SIZE);
+    printf("Total pages: %zu\n\n", total_pages);
+
+    // Sequential memory access
+    printf("Sequential memory access started.\n");
+
+    for (size_t i = 0; i < total_bytes; i += PAGE_SIZE)
+    {
+        memory[i] = 1;
+    }
+
+    printf("Sequential access completed.\n");
+
+    // Random memory access
+    printf("\nRandom memory access started.\n");
+
+    srand((unsigned)time(NULL));
+
+    for (int i = 0; i < 10000; i++)
+    {
+        size_t index = (size_t)rand() % total_bytes;
+        memory[index] = 2;
+    }
+
+    printf("Random access completed.\n");
+
+    printf("\nMemory test completed successfully.\n");
+
+    free(memory);
+
+    return 0;
+}
