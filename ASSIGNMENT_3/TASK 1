@@ -1,0 +1,33 @@
+#include <stdio.h>
+
+int security_module(int amount)
+{
+    printf("Security module called.\n");
+    return amount + 100;
+}
+
+int main()
+{
+    int amount = 500;
+
+    printf("=== Banking Application ===\n");
+
+    printf("Original transaction amount: %d\n", amount);
+
+    int result = security_module(amount);
+
+    printf("Processed transaction amount: %d\n", result);
+
+    printf("\n=== Linking Demonstration ===\n");
+    printf("Static linking: Library code is included during linking.\n");
+    printf("Dynamic linking: Library is loaded separately when required.\n");
+    printf("Runtime linking: Functions can be loaded during execution.\n");
+
+    printf("\n=== Address Binding ===\n");
+    printf("Function address: %p\n", (void *)security_module);
+    printf("Main function address: %p\n", (void *)main);
+
+    printf("\nProgram executed successfully.\n");
+
+    return 0;
+}
